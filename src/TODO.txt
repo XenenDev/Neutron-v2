@@ -1,0 +1,43 @@
+TODO:
+flesh out asset manager
+    -scene manager will work in tandem with asset manager to load assets and show level.
+    -load and store assets in memory.
+    -unique identifier for each asset.
+    -part of loading system.
+
+add scene manager + scenes (class)
+
+add button input support in UI, also text boxes
+
+IMPORTANT: Each game object instanced, should have a String ID, so in code any other object can access it, as a game object.
+
+sprite sheet support, basic animation
+
+audio and audio emitter classes
+    - Current implementation just uses:         //ResManager.sound("res/sound.wav").play();
+
+Rendering Related:
+
+    add lighting system
+       -r.renderLightSource(Brightness, Color, falloff) -> radial light source, types include: box, circle, etc.
+       -Global lighting value
+       -render an opaque Image on top of the screen, resolution can be low or high (light-map resolution)
+            - LAST RENDER CALL SENT BEFORE FRAME SHOW.
+            - useScreenCoordinates = true;
+            - r.drawImage(light-map, 0, 0, WIDTH, HEIGHT)
+       -light emitting sources will add to the final value of light.
+       -no shadows yet... (no blockage of light with objects)
+
+
+FIXME:
+input system, input class "queues" inputs, then game core, "collects" them and runs them all during same time. REDO INPUT CLASS
+ -fix unresponsive scale change ( scroll wheel ) unclear what causes this.  but the Player class seems to be getting notified.
+
+Concurrent modification exception
+ -reproduced by opening a large image while the game is loading. to recreate, load large image in constructor of walls class
+
+
+/////////////////////////////////////URGENT//////////////////////////////////////////
+graphical rotation glitch, decrease fps, then jump with blue character w/ rotation.
+camera + rotation offset bug.
+inWorldY in input class
