@@ -162,6 +162,12 @@ public class ResourceManager {
         public Clip getClip() { return clip; }
         public AudioFormat getFormat() { return format; }
         public byte[] getRawData() { return rawData; }
+
+        public AudioInputStream getFormatStream() {
+            ByteArrayInputStream bais = new ByteArrayInputStream(rawData);
+            return new AudioInputStream(bais, format, rawData.length / format.getFrameSize());
+        }
+
     }
 
 }

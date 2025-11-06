@@ -4,10 +4,12 @@ import com.neutron.engine.base.*;
 import com.neutron.engine.base.interfaces.Collidable;
 import com.neutron.engine.base.interfaces.ObjectRenderer;
 import com.neutron.engine.base.interfaces.UIObjectRenderer;
+import com.neutron.engine.func.UniqueId;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +22,7 @@ public class ObjectHandler {
     private static final ArrayList<UIObjectRenderer> toRenderUIList = new ArrayList<>();
 
     private static final List<Runnable> postUpdateTasks = new ArrayList<>();
+    private static final HashMap<Long, GameObject> gameObjectsById = new HashMap<>();
 
     public static void init(GameCore core) {
         if (gameCore != null) {
@@ -99,28 +102,35 @@ public class ObjectHandler {
                 });
     }
 
-    public static void add(GameObject... gameObjects) {
+    public static long[] add(GameObject... gameObjects) {
+        long[] ids = new long[gameObjects.length];
+        int i = 0;
         for (GameObject gameObject : gameObjects) {
-            add(gameObject);
+            ids[i++] = ObjectHandler.add(gameObject);
         }
+        return ids;
     }
 
-    public static void add(GameObject gameObject) {
+    public static long add(GameObject gameObject) {
+        long id = UniqueId.generateGameObjectId();
         postUpdateTasks.add(() -> {
+            gameObject.setId(id); // Assign ID first
             gameObjects.add(gameObject);
+            gameObjectsById.put(id, gameObject); // Add to lookup map
 
             if (gameObject instanceof ObjectRenderer) toRenderList.add((ObjectRenderer) gameObject);
             if (gameObject instanceof UIObjectRenderer) toRenderUIList.add((UIObjectRenderer) gameObject);
             if (gameObject instanceof Collidable) CollisionManager.register((Collidable) gameObject);
 
-           gameObject.play(ObjectHandler.gameCore);
+            gameObject.play(ObjectHandler.gameCore);
         });
+        return id;
     }
-
 
     public static void remove(GameObject gameObject) {
         postUpdateTasks.add(() -> {
             gameObjects.remove(gameObject);
+            gameObjectsById.remove(gameObject.getId()); // Remove from map
 
             if (gameObject instanceof ObjectRenderer) toRenderList.remove(gameObject);
             if (gameObject instanceof UIObjectRenderer) toRenderUIList.remove(gameObject);
@@ -128,7 +138,13 @@ public class ObjectHandler {
         });
     }
 
+    public static GameObject getById(long id) {
+        return gameObjectsById.get(id); // Returns null if not found
+    }
 
+    public static boolean exists(long id) {
+        return gameObjectsById.containsKey(id);
+    }
 
     public static void remove(GameObject... gameObjects) {
         for (GameObject gameObject : gameObjects) {

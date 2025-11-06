@@ -58,8 +58,8 @@ public abstract class Collider {
     public static class RectangleCollider extends Collider {
         public final double x, y, width, height;
 
-        public RectangleCollider(double x, double y, double width, double height, String id) {
-            super(id);
+        public RectangleCollider(double x, double y, double width, double height, String tag) {
+            super(tag);
             this.x = x;
             this.y = y;
             this.width = width;

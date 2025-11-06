@@ -9,7 +9,7 @@ public class Resource {
     private final ResourceType type;
 
     public Resource(String path) {
-        this.id = uniqueID.generateResourceId();
+        this.id = UniqueId.generateResourceId();
         this.path = path;
         this.type = ResourceManager.load(path, this.id);
     }
