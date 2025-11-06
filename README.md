@@ -251,4 +251,4 @@ For questions, issues, or suggestions, please open an issue on GitHub.
 
 ---
 
-**Made with ❤️ by the Neutron Engine Team**
+**Crafted with passion and with ❤️, from Xander van Pelt*
