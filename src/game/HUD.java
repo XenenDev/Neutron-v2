@@ -4,10 +4,13 @@ import com.neutron.engine.*;
 import com.neutron.engine.base.GameObject;
 import com.neutron.engine.base.interfaces.ObjectRenderer;
 import com.neutron.engine.base.interfaces.UIObjectRenderer;
+import com.neutron.engine.func.Resource;
 
 import java.awt.*;
 
 public class HUD extends GameObject implements UIObjectRenderer, ObjectRenderer {
+
+    Resource bg = new Resource("res/sunset.jpg");
 
     public void play(GameCore gameCore) {
 
@@ -19,7 +22,7 @@ public class HUD extends GameObject implements UIObjectRenderer, ObjectRenderer 
 
     public void render(GameCore gameCore, Renderer r) {
         //r.shade(0, 0, r.WIDTH, r.HEIGHT, 1f, 1f, new FourCornersShader());
-        r.drawImage(ResManager.img("res/sunset.jpg"), 0, 0, r.WIDTH, r.HEIGHT);
+        r.drawImage((Image) bg.get(), 0, 0, r.WIDTH, r.HEIGHT);
     }
 
     public int getZDepth() {

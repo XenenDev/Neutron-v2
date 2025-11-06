@@ -60,7 +60,7 @@ public class GameCore implements Runnable {
 
             renderer.clear();
             ObjectHandler.renderObjects(this, renderer);
-            CollisionManager.renderCollisionBoxes(renderer); //REMOVE ME
+            //CollisionManager.renderCollisionBoxes(renderer); //REMOVE ME
             ObjectHandler.renderUIObjects(this, renderer);
             renderer.show();
         }

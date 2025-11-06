@@ -26,7 +26,7 @@ public class Window extends Frame {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         //add icon image
-        frame.setIconImage(ResManager.img(iconPath));
+        frame.setIconImage(ResourceManager.img(iconPath));
 
         //add canvas to frame
         frame.add(canvas);

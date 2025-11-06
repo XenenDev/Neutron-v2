@@ -65,7 +65,7 @@ public class ObjectHandler {
         }
 
         //render lightmap above everything
-        r.drawLightmap();
+        //r.drawLightmap(); TODO
     }
 
 

@@ -16,9 +16,12 @@ public class Wall extends GameObject implements ObjectRenderer, Collidable {
     public final int width;
     public int x;
     public float vx;
+    public int counter;
 
     public Wall(int x) {
         this.x = x;
+        this.vx = 1;
+        this.counter = 0;
         width = 60;
         height = Random.randInt(100, 500);
     }
@@ -33,6 +36,14 @@ public class Wall extends GameObject implements ObjectRenderer, Collidable {
         if (x + width < 0) {
             x = 1000;
             height = Random.randInt(100, 500);
+        }
+
+        counter++;
+
+        if ((1000 <= counter) && (counter < 1100)) {
+            vx += 0.005f;
+        } else if (counter >= 1100) {
+            counter = 0;
         }
     }
 

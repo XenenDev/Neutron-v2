@@ -6,18 +6,18 @@ flesh out asset manager
     -part of loading system.
 
 add scene manager + scenes (class)
+Scenes should be XML defined
 
 add button input support in UI, also text boxes
 
 IMPORTANT: Each game object instanced, should have a String ID, so in code any other object can access it, as a game object.
 
-sprite sheet support, basic animation
+basic animation state machine
 
 audio and audio emitter classes
     - Current implementation just uses:         //ResManager.sound("res/sound.wav").play();
 
 Rendering Related:
-
     add lighting system
        -r.renderLightSource(Brightness, Color, falloff) -> radial light source, types include: box, circle, etc.
        -Global lighting value
@@ -28,16 +28,4 @@ Rendering Related:
        -light emitting sources will add to the final value of light.
        -no shadows yet... (no blockage of light with objects)
 
-
-FIXME:
-input system, input class "queues" inputs, then game core, "collects" them and runs them all during same time. REDO INPUT CLASS
- -fix unresponsive scale change ( scroll wheel ) unclear what causes this.  but the Player class seems to be getting notified.
-
-Concurrent modification exception
- -reproduced by opening a large image while the game is loading. to recreate, load large image in constructor of walls class
-
-
-/////////////////////////////////////URGENT//////////////////////////////////////////
-graphical rotation glitch, decrease fps, then jump with blue character w/ rotation.
-camera + rotation offset bug.
-inWorldY in input class
+GOAL: make this an AI native game engine. Visual Chat + scene editor that uses the java backend to work.

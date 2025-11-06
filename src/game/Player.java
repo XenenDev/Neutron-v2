@@ -3,7 +3,9 @@ package game;
 import com.neutron.engine.*;
 import com.neutron.engine.base.*;
 import com.neutron.engine.base.interfaces.*;
+import com.neutron.engine.func.AudioEffect;
 import com.neutron.engine.func.Collider;
+import com.neutron.engine.func.Resource;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -13,12 +15,14 @@ import java.util.List;
 
 public class Player extends GameObject implements ObjectRenderer, MouseWheelInput, MouseButtonInput, MouseMovement, Collidable {
     private int x, y;
-    private int lastX, lastY;
     private int jumpHeight;
     private float vx, vy;
     private float scale;
     private int score;
     private GameCore gameCore;
+
+    Resource pop = new Resource("res/sound.wav");
+    Resource bird = new Resource("res/bird.png");
 
     public void play(GameCore gameCore) {
         this.x = 40;
@@ -33,23 +37,18 @@ public class Player extends GameObject implements ObjectRenderer, MouseWheelInpu
     }
 
     public void update(GameCore gameCore, float delta) {
-        int dX = x - lastX, dY = y - lastY;
-//        x += (int) vx;
-//        y += (int) vy;
-//        vy += 0.2f;
-//
-//        if (y >= gameCore.HEIGHT || y < -50) {
-//            this.die();
-//        }
+        x += (int) vx;
+        y += (int) vy;
+        vy += 0.2f;
+
+        if (y >= gameCore.HEIGHT || y < -50) {
+            this.die();
+        }
 
         if (Input.isKeyDown(KeyEvent.VK_LEFT)) gameCore.getRenderer().moveCameraPos(-3, 0);
         if (Input.isKeyDown(KeyEvent.VK_RIGHT)) gameCore.getRenderer().moveCameraPos(3, 0);
         if (Input.isKeyDown(KeyEvent.VK_UP)) gameCore.getRenderer().moveCameraPos(0, -3);
         if (Input.isKeyDown(KeyEvent.VK_DOWN)) gameCore.getRenderer().moveCameraPos(0, 3);
-        lastX = x;
-        lastY = y;
-        vx = ((float) dX) / delta;
-        vy = ((float) dY) / delta;
     }
 
     private void die() {
@@ -70,15 +69,9 @@ public class Player extends GameObject implements ObjectRenderer, MouseWheelInpu
     }
 
     public void render(GameCore gameCore, Renderer r) {
-        r.fillSquare(0, 0, 50, Color.CYAN);
+        //r.fillSquare(0, 0, 50, Color.CYAN);
         //r.shadeLight(0, 0, 10, Color.yellow, (x) -> x*x, 200);
-        //r.drawImage(ResManager.img("res/sunset.jpg"), 0, 0, 50, 50);
-    }
-
-    @Override
-    public void mouseMoved(MouseEvent event, Integer x, Integer y, Boolean isOffWindow) {
-        this.x = x;
-        this.y = y;
+        r.drawImage((Image) bird.get(), 0, 0, 50, 50);
     }
 
     public void mouseWheelMoved(MouseWheelEvent event, Integer scrollAmount) {
@@ -91,10 +84,10 @@ public class Player extends GameObject implements ObjectRenderer, MouseWheelInpu
     public void mousePressed(MouseEvent event, Integer x, Integer y, Boolean isOffWindow) {
         if (event.getButton() == Input.MOUSE_L_BUTTON) {
             vy = -jumpHeight;
+            SoundManager.play(pop, 1.0f, null);
         } else {
             scale = scale == 0.3f ? 1f : 0.3f;
         }
-        //ResManager.sound("res/sound.wav").play();
     }
 
     public Integer getX() {
@@ -107,7 +100,7 @@ public class Player extends GameObject implements ObjectRenderer, MouseWheelInpu
         return (double) scale;
     }
     public Double getRotation() {
-        return 0d;//vy * 1d;
+        return vy * 1d;
     }
     public int getZDepth() {
         return 1;
