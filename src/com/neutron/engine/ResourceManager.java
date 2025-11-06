@@ -1,6 +1,5 @@
 package com.neutron.engine;
 
-import com.neutron.engine.func.Resource;
 import com.neutron.engine.func.ResourceType;
 import javax.sound.sampled.*;
 import java.io.*;

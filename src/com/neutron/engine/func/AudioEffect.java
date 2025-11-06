@@ -37,7 +37,6 @@ public class AudioEffect {
             ByteArrayInputStream bais = new ByteArrayInputStream(processed);
             AudioInputStream ais = new AudioInputStream(bais, sound.getFormat(), processed.length / sound.getFormat().getFrameSize());
             clip.open(ais);
-
         } catch (Exception e) {
             e.printStackTrace();
         }

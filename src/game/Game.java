@@ -2,10 +2,8 @@ package game;
 
 import com.neutron.engine.GameCore;
 import com.neutron.engine.Renderer;
-import com.neutron.engine.ResourceManager;
 import com.neutron.engine.base.BaseGame;
 import com.neutron.engine.func.GraphicsFidelity;
-import com.neutron.engine.func.Resource;
 
 import java.awt.*;
 
