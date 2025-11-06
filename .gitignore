@@ -1,4 +1,32 @@
+# Ignore build output
 /out/
-/.idea/
-*.iml
+bin/
+build/
+target/
 
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VSCode
+.vscode/
+
+# macOS & Windows system junk
+.DS_Store
+Thumbs.db
+
+# Random
+TODO.txt
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
