@@ -1,3 +1,5 @@
+<img height="150" alt="image" src="https://github.com/user-attachments/assets/c40c3e6e-2599-4e52-a5c6-0e2c460a8eb6" />
+
 # Neutron v2 Game Engine
 
 [![Java](https://img.shields.io/badge/Java-17%2B-orange.svg)](https://www.oracle.com/java/)
