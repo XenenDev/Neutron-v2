@@ -8,7 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import javax.sound.sampled.AudioFormat;
 /**
- * A configurable audio effect that can apply gain, echo, and stretch.
+ * A configurable audio effect that can apply gain, echo, and stretch. TODO!
  */
 public class AudioEffect {
     private final double gain;       // volume multiplier

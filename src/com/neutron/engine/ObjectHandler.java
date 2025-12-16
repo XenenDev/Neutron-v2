@@ -3,7 +3,8 @@ package com.neutron.engine;
 import com.neutron.engine.base.*;
 import com.neutron.engine.base.interfaces.Collidable;
 import com.neutron.engine.base.interfaces.ObjectRenderer;
-import com.neutron.engine.base.interfaces.UIObjectRenderer;
+import com.neutron.engine.base.interfaces.ui.UIGroup;
+import com.neutron.engine.base.interfaces.ui.UIObject;
 import com.neutron.engine.func.UniqueId;
 
 import java.lang.reflect.InvocationTargetException;
@@ -19,7 +20,7 @@ public class ObjectHandler {
 
     private static final ArrayList<GameObject> gameObjects = new ArrayList<>();
     private static final ArrayList<ObjectRenderer> toRenderList = new ArrayList<>();
-    private static final ArrayList<UIObjectRenderer> toRenderUIList = new ArrayList<>();
+    private static final ArrayList<UIGroup> uiObjects = new ArrayList<>();
 
     private static final List<Runnable> postUpdateTasks = new ArrayList<>();
     private static final HashMap<Long, GameObject> gameObjectsById = new HashMap<>();
@@ -35,7 +36,7 @@ public class ObjectHandler {
         ObjectHandler.gameCore = gameCore;
         // Run any deferred object additions/removals after interface calls
         List<Runnable> snapshot = new ArrayList<>(postUpdateTasks);
-        snapshot.forEach(Runnable::run); //FIXME: Can cause null pointer exception when a GO is deleted, and a later function tries to modify or reference the now non-existent game object
+        snapshot.forEach(Runnable::run); //FIXME: Can cause null pointer exception when a GameObj is deleted, and a later function tries to modify or reference the now non-existent game object
         postUpdateTasks.clear();
 
         for (GameObject gameObject : gameObjects) {
@@ -75,11 +76,21 @@ public class ObjectHandler {
     public static void renderUIObjects(GameCore gameCore, Renderer r) {
         r.setUseScreenCoordinates(true);
 
-        for (UIObjectRenderer uiObject : toRenderUIList) {
-            uiObject.renderUI(gameCore, r);
+        for (UIGroup uiGroup : uiObjects) {
+            for (UIObject uiObject : uiGroup.objects()) {
+                uiObject.renderUI(gameCore, r);
+            }
         }
 
         r.setUseScreenCoordinates(false);
+    }
+
+    public static void sendUIObjectUpdates(int mouseX, int mouseY) {
+        for (UIGroup uiGroup : uiObjects) {
+            for (UIObject uiObject : uiGroup.objects()) {
+                if (uiObject.isBeingPressed(mouseX, mouseY)) uiObject.onPress();
+            }
+        }
     }
 
     public static void queueInterfaceUpdate(Class<?> interfaceClass, String methodName, Object... args) {
@@ -119,7 +130,7 @@ public class ObjectHandler {
             gameObjectsById.put(id, gameObject); // Add to lookup map
 
             if (gameObject instanceof ObjectRenderer) toRenderList.add((ObjectRenderer) gameObject);
-            if (gameObject instanceof UIObjectRenderer) toRenderUIList.add((UIObjectRenderer) gameObject);
+            if (gameObject instanceof UIGroup) uiObjects.add((UIGroup) gameObject);
             if (gameObject instanceof Collidable) CollisionManager.register((Collidable) gameObject);
 
             gameObject.play(ObjectHandler.gameCore);
@@ -133,7 +144,7 @@ public class ObjectHandler {
             gameObjectsById.remove(gameObject.getId()); // Remove from map
 
             if (gameObject instanceof ObjectRenderer) toRenderList.remove(gameObject);
-            if (gameObject instanceof UIObjectRenderer) toRenderUIList.remove(gameObject);
+            if (gameObject instanceof UIGroup) uiObjects.remove(gameObject);
             if (gameObject instanceof Collidable) CollisionManager.unregister((Collidable) gameObject);
         });
     }

@@ -78,6 +78,7 @@ public class Input extends KeyAdapter implements MouseMotionListener, MouseWheel
     public void mousePressed(MouseEvent e) {
         currentPressedMouseButtons[e.getButton()-1] = true;
         ObjectHandler.queueInterfaceUpdate(MouseButtonInput.class, "mousePressed", e, Math.max(0, Math.min(gameCore.WIDTH, e.getX())), Math.max(0, Math.min(gameCore.HEIGHT, e.getY())), e.getX() > gameCore.WIDTH || e.getX() < 0 || e.getY() > gameCore.HEIGHT || e.getY() < 0);
+        ObjectHandler.sendUIObjectUpdates(Math.max(0, Math.min(gameCore.WIDTH, e.getX())), Math.max(0, Math.min(gameCore.HEIGHT, e.getY())));
     }
 
     public void mouseReleased(MouseEvent e) {

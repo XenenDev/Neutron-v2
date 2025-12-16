@@ -3,12 +3,14 @@ package game;
 import com.neutron.engine.*;
 import com.neutron.engine.base.GameObject;
 import com.neutron.engine.base.interfaces.ObjectRenderer;
-import com.neutron.engine.base.interfaces.UIObjectRenderer;
+import com.neutron.engine.base.interfaces.ui.UIButton;
+import com.neutron.engine.base.interfaces.ui.UIGroup;
+import com.neutron.engine.base.interfaces.ui.UIObject;
 import com.neutron.engine.func.Resource;
 
 import java.awt.*;
 
-public class HUD extends GameObject implements UIObjectRenderer, ObjectRenderer {
+public class HUD extends GameObject implements UIGroup, ObjectRenderer {
 
     Resource bg = new Resource("res/sunset.jpg");
 
@@ -29,9 +31,21 @@ public class HUD extends GameObject implements UIObjectRenderer, ObjectRenderer 
         return 0;
     }
 
-    public void renderUI(GameCore gameCore, Renderer r) {
-        r.drawText("Score: " + ((Player) ObjectHandler.get(Player.class).getFirst()).getScore(), 5, 25, Color.BLUE);
-        r.drawText("FPS: " + gameCore.getFPS(), 5, 50, Color.BLUE);
+    public UIObject[] objects() {
+        return new UIObject[]{new UIObject(5, 5, 200, 40) {
+
+            @Override
+            protected void renderSelf(GameCore gameCore, Renderer r) {
+                r.drawText("Score: " + ((Player) ObjectHandler.get(Player.class).getFirst()).getScore(), x, y + 20, Color.BLUE);
+                r.drawText("FPS: " + gameCore.getFPS(), x, y + 40, Color.BLUE);
+                r.fillRect(5, 5, 200, 40, new Color(1f, 1f, 1f, 0.6f));
+            }
+
+            @Override
+            public void onPress() {
+                System.out.println(10);
+            }
+        }, new UIButton(50, 50, 100, 40, "Press me!", () -> System.out.println("pressed!"))};
     }
 
     public Integer getX() {
