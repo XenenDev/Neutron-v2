@@ -1,6 +1,7 @@
 package com.neutron.engine;
 
 import com.neutron.engine.func.GraphicsFidelity;
+import com.neutron.engine.func.ScreenAnchor;
 import com.neutron.engine.func.Shader;
 
 import java.awt.*;
@@ -17,6 +18,7 @@ public class Renderer {
     public final Graphics2D graphics;
 
     private boolean useScreenCoordinates;
+    private ScreenAnchor screenAnchor = ScreenAnchor.TOP_LEFT;
     private double scale = 1;
     private int cameraX = 0, cameraY = 0;
 
@@ -96,128 +98,91 @@ public class Renderer {
 
     public void fillRect(int x, int y, int w, int h, Color color) {
         graphics.setColor(color);
-        if (!useScreenCoordinates) {graphics.fillRect(x-cameraX, y-cameraY, w, h);}
-        else {graphics.fillRect(x, y, w, h);}
+        graphics.fillRect(anchoredX(x), anchoredY(y), w, h);
     }
 
     public void fillSquare(int x, int y, int length, Color color) {
         graphics.setColor(color);
-        if (!useScreenCoordinates) {graphics.fillRect(x-cameraX, y-cameraY, length, length);}
-        else {graphics.fillRect(x, y, length, length);}
+        graphics.fillRect(anchoredX(x), anchoredY(y), length, length);
     }
 
     public void fillOval(int x, int y, int w, int h, Color color) {
         graphics.setColor(color);
-        if (!useScreenCoordinates) {graphics.fillOval(x-cameraX, y-cameraY, w, h);}
-        else {graphics.fillOval(x, y, w, h);}
+        graphics.fillOval(anchoredX(x), anchoredY(y), w, h);
     }
 
     public void fillCircle(int x, int y, int radius, Color color) {
         graphics.setColor(color);
-        if (!useScreenCoordinates) {graphics.fillOval(x-cameraX, y-cameraY, radius, radius);}
-        else {graphics.fillOval(x, y, radius, radius);}
+        graphics.fillOval(anchoredX(x), anchoredY(y), radius, radius);
     }
 
     public void drawRect(int x, int y, int w, int h, Color color) {
         graphics.setColor(color);
-        if (!useScreenCoordinates) {graphics.drawRect(x-cameraX, y-cameraY, w, h);}
-        else {graphics.drawRect(x, y, w, h);}
+        graphics.drawRect(anchoredX(x), anchoredY(y), w, h);
     }
 
     public void drawSquare(int x, int y, int length, Color color) {
         graphics.setColor(color);
-        if (!useScreenCoordinates) {graphics.drawRect(x-cameraX, y-cameraY, length, length);}
-        else {graphics.drawRect(x, y, length, length);}
+        graphics.drawRect(anchoredX(x), anchoredY(y), length, length);
     }
 
     public void drawOval(int x, int y, int w, int h, Color color) {
         graphics.setColor(color);
-        if (!useScreenCoordinates) {graphics.drawOval(x-cameraX, y-cameraY, w, h);}
-        else {graphics.drawOval(x, y, w, h);}
+        graphics.drawOval(anchoredX(x), anchoredY(y), w, h);
     }
 
     public void drawCircle(int x, int y, int radius, Color color) {
         graphics.setColor(color);
-        if (!useScreenCoordinates) {graphics.drawOval(x-cameraX, y-cameraY, radius, radius);}
-        else {graphics.drawOval(x, y, radius, radius);}
+        graphics.drawOval(anchoredX(x), anchoredY(y), radius, radius);
     }
 
     public void drawLine(int x1, int y1, int x2, int y2, Color color) {
         graphics.setColor(color);
-        if (!useScreenCoordinates) {graphics.drawLine(x1+cameraX, y1+cameraX, x2+cameraY, y2+cameraY);}
-        else {graphics.drawLine(x1, y1, x2, y2);}
+        graphics.drawLine(anchoredX(x1), anchoredY(y1), anchoredX(x2), anchoredY(y2));
     }
 
     public void drawImage(Image img, int x, int y) {
-        if (!useScreenCoordinates) {graphics.drawImage(img, x-cameraX, y-cameraY, null);}
-        else {graphics.drawImage(img, x, y, null);}
+        graphics.drawImage(img, anchoredX(x), anchoredY(y), null);
     }
 
     public void drawImage(Image img, int x, int y, Color bgColor) {
-        if (!useScreenCoordinates) {graphics.drawImage(img, x-cameraX, y-cameraY, bgColor, null);}
-        else {graphics.drawImage(img, x, y, bgColor, null);}
+        graphics.drawImage(img, anchoredX(x), anchoredY(y), bgColor, null);
     }
 
     public void drawImage(Image img, int x, int y, int w, int h) {
-        if (!useScreenCoordinates) {graphics.drawImage(img, x-cameraX, y-cameraY, w, h, null);}
-        else {graphics.drawImage(img, x, y, w, h, null);}
+        graphics.drawImage(img, anchoredX(x), anchoredY(y), w, h, null);
     }
 
     public void drawImage(Image img, int x, int y, int w, int h, Color bgColor) {
-        if (!useScreenCoordinates) {graphics.drawImage(img, x-cameraX, y-cameraY, w, h, bgColor, null);}
-        else {graphics.drawImage(img, x, y, w, h, bgColor, null);}
+        graphics.drawImage(img, anchoredX(x), anchoredY(y), w, h, bgColor, null);
     }
 
     public void drawImage(Image img, int x, int y, float scale) {
-        if (!useScreenCoordinates) {
-            graphics.drawImage(
-                    img,
-                    x-cameraX,
-                    y-cameraY,
-                    (int) (img.getWidth(null) * scale),
-                    (int) (img.getHeight(null) * scale),
-                    null
-            );
-        } else {
-            graphics.drawImage(
-                    img,
-                    x,
-                    y,
-                    (int) (img.getWidth(null) * scale),
-                    (int) (img.getHeight(null) * scale),
-                    null
-            );
-        }
+        graphics.drawImage(
+                img,
+                anchoredX(x),
+                anchoredY(y),
+                (int) (img.getWidth(null) * scale),
+                (int) (img.getHeight(null) * scale),
+                null
+        );
     }
 
     public void drawImage(Image img, int x, int y, float scale, Color bgColor) {
-        if (!useScreenCoordinates) {
-            graphics.drawImage(
-                    img,
-                    x-cameraX,
-                    y-cameraY,
-                    (int) (img.getWidth(null) * scale),
-                    (int) (img.getHeight(null) * scale),
-                    bgColor,
-                    null
-            );
-        } else {
-            graphics.drawImage(
-                    img,
-                    x,
-                    y,
-                    (int) (img.getWidth(null) * scale),
-                    (int) (img.getHeight(null) * scale),
-                    bgColor,
-                    null
-            );
-        }
+        graphics.drawImage(
+                img,
+                anchoredX(x),
+                anchoredY(y),
+                (int) (img.getWidth(null) * scale),
+                (int) (img.getHeight(null) * scale),
+                bgColor,
+                null
+        );
     }
 
     public void drawText(Object string, int x, int y, Color color) {
         graphics.setColor(color);
-        if (!useScreenCoordinates) {graphics.drawString(String.valueOf(string), x-cameraX, y-cameraY);}
-        else {graphics.drawString(String.valueOf(string), x, y);}
+        graphics.drawString(String.valueOf(string), anchoredX(x), anchoredY(y));
     }
 
     public void shade(int x, int y, int w, int h, Shader shader) {
@@ -404,6 +369,67 @@ public class Renderer {
 
     public boolean getUseScreenCoordinates() {
         return useScreenCoordinates;
+    }
+
+    /**
+     * Sets the screen anchor point for screen coordinate positioning.
+     * <p>
+     * When using screen coordinates ({@code setUseScreenCoordinates(true)}),
+     * this anchor point determines the origin from which coordinates are calculated.
+     * For example, with {@link ScreenAnchor#BOTTOM_RIGHT}, coordinate (0, 0) is at
+     * the bottom-right corner, and negative X values move left, negative Y values move up.
+     * </p>
+     *
+     * @param anchor the screen anchor point to use
+     * @see ScreenAnchor
+     * @see #setUseScreenCoordinates(boolean)
+     */
+    public void setScreenAnchor(ScreenAnchor anchor) {
+        this.screenAnchor = anchor != null ? anchor : ScreenAnchor.TOP_LEFT;
+    }
+
+    /**
+     * Gets the current screen anchor point.
+     *
+     * @return the current screen anchor
+     * @see #setScreenAnchor(ScreenAnchor)
+     */
+    public ScreenAnchor getScreenAnchor() {
+        return screenAnchor;
+    }
+
+    /**
+     * Calculates the actual X coordinate based on the current screen anchor.
+     * <p>
+     * This method translates a coordinate relative to the current anchor point
+     * to an absolute screen coordinate.
+     * </p>
+     *
+     * @param x the X coordinate relative to the current anchor
+     * @return the absolute screen X coordinate
+     */
+    private int anchoredX(int x) {
+        if (!useScreenCoordinates) {
+            return x - cameraX;
+        }
+        return x + screenAnchor.getXOffset(WIDTH);
+    }
+
+    /**
+     * Calculates the actual Y coordinate based on the current screen anchor.
+     * <p>
+     * This method translates a coordinate relative to the current anchor point
+     * to an absolute screen coordinate.
+     * </p>
+     *
+     * @param y the Y coordinate relative to the current anchor
+     * @return the absolute screen Y coordinate
+     */
+    private int anchoredY(int y) {
+        if (!useScreenCoordinates) {
+            return y - cameraY;
+        }
+        return y + screenAnchor.getYOffset(HEIGHT);
     }
 
 
