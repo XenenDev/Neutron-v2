@@ -141,8 +141,8 @@ public class CollisionManager {
         // exit callbacks
         for (CollisionPair p : prev) {
             if (!curr.contains(p)) {
-                p.objA().onExit((GameObject)p.objB());
-                p.objB().onExit((GameObject)p.objA());
+                p.objA().onExit((GameObject)p.objB(), p.colliderIdB);
+                p.objB().onExit((GameObject)p.objA(), p.colliderIdA);
             }
         }
 

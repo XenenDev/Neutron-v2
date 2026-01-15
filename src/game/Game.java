@@ -3,16 +3,19 @@ package game;
 import com.neutron.engine.GameCore;
 import com.neutron.engine.Renderer;
 import com.neutron.engine.base.BaseGame;
+import com.neutron.engine.base.GameObject;
+import com.neutron.engine.func.Collider;
 import com.neutron.engine.func.GraphicsFidelity;
 
 import java.awt.*;
+import java.util.List;
 
 public class Game extends BaseGame {
     public static void main(String[] args) {
         new GameCore(
                 new Game(),
-                "Neutron V2 Game Engine Test",
-                800,
+                "Neutron V2 Game Engine Demo",
+                1000,
                 600,
                 "res/icon.png",
                 new GraphicsFidelity() {
@@ -41,6 +44,7 @@ public class Game extends BaseGame {
         for (int i = 0; i < 4; i++) {
             new Wall(250 * (i+1));
         }
+        new Ground();
 
         r.setFont(new Font("Consolas", Font.PLAIN, 25));
     }

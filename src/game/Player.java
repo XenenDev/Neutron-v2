@@ -12,48 +12,50 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.util.List;
 
-public class Player extends GameObject implements ObjectRenderer, MouseWheelInput, MouseButtonInput, MouseMovement, Collidable {
+public class Player extends GameObject implements ObjectRenderer, MouseButtonInput, MouseMovement, Collidable {
     private int x, y;
     private int jumpHeight;
-    private float vx, vy;
+    private float vy;
+    private float r;
     private float scale;
     private int score;
+    private boolean onGround;
     private GameCore gameCore;
 
     Resource pop = new Resource("res/sound.wav");
-    Resource bird = new Resource("res/bird.png");
 
     public void play(GameCore gameCore) {
         this.x = 40;
         this.y = 100;
-        this.vx = 0;
+        this.r = 0;
         this.vy = 0;
         this.scale = 1f;
         this.score = 0;
+
+        this.onGround = false;
         
         this.gameCore = gameCore;
-        this.jumpHeight = 5;
+        this.jumpHeight = 12;
     }
 
     public void update(GameCore gameCore, float delta) {
-        x += (int) vx;
         y += (int) vy;
-        vy += 0.2f;
+        vy += 0.5f;
 
-        if (y >= gameCore.HEIGHT || y < -50) {
-            this.die();
+        if (onGround) {
+            if (vy > 0) {
+                vy = 0;
+                y = 452;
+            }
+            r = 0;
+        } else {
+            //r += 3.4f * delta;
         }
-
-        if (Input.isKeyDown(KeyEvent.VK_LEFT)) gameCore.getRenderer().moveCameraPos(-3, 0);
-        if (Input.isKeyDown(KeyEvent.VK_RIGHT)) gameCore.getRenderer().moveCameraPos(3, 0);
-        if (Input.isKeyDown(KeyEvent.VK_UP)) gameCore.getRenderer().moveCameraPos(0, -3);
-        if (Input.isKeyDown(KeyEvent.VK_DOWN)) gameCore.getRenderer().moveCameraPos(0, 3);
     }
 
     private void die() {
         this.x = 40;
         this.y = 100;
-        this.vx = 0;
         this.vy = 0;
         this.scale = 1f;
         this.score = 0;
@@ -68,24 +70,14 @@ public class Player extends GameObject implements ObjectRenderer, MouseWheelInpu
     }
 
     public void render(GameCore gameCore, Renderer r) {
-        //r.fillSquare(0, 0, 50, Color.CYAN);
-        //r.shadeLight(0, 0, 10, Color.yellow, (x) -> x*x, 200);
-        r.drawImage((Image) bird.get(), 0, 0, 50, 50);
-    }
-
-    public void mouseWheelMoved(MouseWheelEvent event, Integer scrollAmount) {
-        if (0.01 < gameCore.getRenderer().getCameraZoom() && gameCore.getRenderer().getCameraZoom() < 100) {
-            if (scrollAmount < 0) gameCore.getRenderer().setCameraZoom(gameCore.getRenderer().getCameraZoom() / 2);
-            else gameCore.getRenderer().setCameraZoom(gameCore.getRenderer().getCameraZoom() * 2);
-        } else { gameCore.getRenderer().setCameraZoom(1);}
+        r.fillSquare(0, 0, 50, Color.BLACK);
+        r.fillSquare(2, 2, 46, Color.CYAN);
     }
 
     public void mousePressed(MouseEvent event, Integer x, Integer y, Boolean isOffWindow) {
-        if (event.getButton() == Input.MOUSE_L_BUTTON) {
-            vy = -jumpHeight;
+        if (event.getButton() == Input.MOUSE_L_BUTTON && onGround) {
+            vy -= jumpHeight;
             SoundManager.play(pop, 1.0f, null);
-        } else {
-            scale = scale == 0.3f ? 1f : 0.3f;
         }
     }
 
@@ -99,7 +91,7 @@ public class Player extends GameObject implements ObjectRenderer, MouseWheelInpu
         return (double) scale;
     }
     public Double getRotation() {
-        return vy * 1d;
+        return (double) r;
     }
     public int getZDepth() {
         return 1;
@@ -107,7 +99,7 @@ public class Player extends GameObject implements ObjectRenderer, MouseWheelInpu
 
     @Override
     public Float getVx() {
-        return vx;
+        return 0f;
     }
 
     @Override
@@ -127,5 +119,15 @@ public class Player extends GameObject implements ObjectRenderer, MouseWheelInpu
     public void onEnter(GameObject other, String id) {
         if (id.equals("wall")) this.die();
         if (id.equals("score")) this.score += 1;
+        if (id.equals("ground")) this.onGround = true;
+    }
+
+    @Override
+    public void onExit(GameObject other, String id) {
+        if (id.equals("ground")) {
+            System.out.println("SOO");
+            this.onGround = false;
+        }
+        this.onGround = false;
     }
 }

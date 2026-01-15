@@ -23,8 +23,8 @@ public class HUD extends GameObject implements UIGroup, ObjectRenderer {
     }
 
     public void render(GameCore gameCore, Renderer r) {
-        //r.shade(0, 0, r.WIDTH, r.HEIGHT, 1f, 1f, new FourCornersShader());
-        r.drawImage((Image) bg.get(), 0, 0, r.WIDTH, r.HEIGHT);
+        //r.drawImage((Image) bg.get(), 0, 0, r.WIDTH, r.HEIGHT);
+        r.fillRect(0, 0, r.WIDTH, r.HEIGHT, Color.BLUE);
     }
 
     public int getZDepth() {

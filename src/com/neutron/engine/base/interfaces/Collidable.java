@@ -13,6 +13,6 @@ public interface Collidable extends Transform, Movable {
 
     default void onEnter(GameObject other, String id) {}
 
-    default void onExit(GameObject other) {}
+    default void onExit(GameObject other, String id) {}
 
 }
