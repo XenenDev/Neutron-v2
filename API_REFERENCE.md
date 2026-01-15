@@ -254,6 +254,21 @@ public boolean getUseScreenCoordinates()
 ```
 Returns current coordinate mode.
 
+**setScreenAnchor()**
+```java
+public void setScreenAnchor(ScreenAnchor anchor)
+```
+Sets the anchor point for screen coordinate positioning.
+- **Parameters:** `anchor` - One of the 9 anchor points (TOP_LEFT, TOP_CENTER, TOP_RIGHT, CENTER_LEFT, CENTER, CENTER_RIGHT, BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT)
+- **Default:** TOP_LEFT
+- Only affects rendering when using screen coordinates
+
+**getScreenAnchor()**
+```java
+public ScreenAnchor getScreenAnchor()
+```
+Returns the current screen anchor point.
+
 #### Rendering Pipeline
 
 **clear()**
@@ -959,6 +974,51 @@ Enum for resource types.
 IMAGE
 SOUND
 ```
+
+---
+
+### ScreenAnchor
+
+Enum for screen coordinate anchor points.
+
+#### Values
+```java
+TOP_LEFT       // Anchor to top-left corner (default)
+TOP_CENTER     // Anchor to top-center
+TOP_RIGHT      // Anchor to top-right corner
+CENTER_LEFT    // Anchor to center-left
+CENTER         // Anchor to center of screen
+CENTER_RIGHT   // Anchor to center-right
+BOTTOM_LEFT    // Anchor to bottom-left corner
+BOTTOM_CENTER  // Anchor to bottom-center
+BOTTOM_RIGHT   // Anchor to bottom-right corner
+```
+
+#### Methods
+
+**getXOffset()**
+```java
+public int getXOffset(int screenWidth)
+```
+Calculates the X offset for this anchor point given the screen width.
+
+**getYOffset()**
+```java
+public int getYOffset(int screenHeight)
+```
+Calculates the Y offset for this anchor point given the screen height.
+
+**getXFactor()**
+```java
+public float getXFactor()
+```
+Gets the horizontal factor (0.0 = left, 0.5 = center, 1.0 = right).
+
+**getYFactor()**
+```java
+public float getYFactor()
+```
+Gets the vertical factor (0.0 = top, 0.5 = center, 1.0 = bottom).
 
 ---
 

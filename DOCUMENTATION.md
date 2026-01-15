@@ -295,6 +295,43 @@ renderer.setUseScreenCoordinates(true);  // Screen mode
 renderer.setUseScreenCoordinates(false); // World mode
 ```
 
+### Screen Anchors
+
+When using screen coordinates, you can set an anchor point to position elements relative to any of 9 screen positions:
+
+```
+┌─────────────────────────────────────┐
+│ TOP_LEFT    TOP_CENTER    TOP_RIGHT │
+│                                     │
+│ CENTER_LEFT   CENTER   CENTER_RIGHT │
+│                                     │
+│ BOTTOM_LEFT BOTTOM_CENTER BOTTOM_RIGHT│
+└─────────────────────────────────────┘
+```
+
+**Setting the anchor:**
+```java
+renderer.setUseScreenCoordinates(true);
+
+// Top-left corner (default behavior)
+renderer.setScreenAnchor(ScreenAnchor.TOP_LEFT);
+renderer.drawText("Score: 100", 10, 30, Color.WHITE);
+
+// Bottom-right corner (use negative coordinates to move inward)
+renderer.setScreenAnchor(ScreenAnchor.BOTTOM_RIGHT);
+renderer.drawText("Lives: 3", -100, -20, Color.WHITE);
+
+// Center of screen
+renderer.setScreenAnchor(ScreenAnchor.CENTER);
+renderer.drawText("PAUSED", -30, 0, Color.WHITE);
+```
+
+**Key Points:**
+- Default anchor is `TOP_LEFT` (same as previous behavior)
+- Anchor only affects screen coordinates (not world coordinates)
+- Use negative values to move inward from right/bottom anchors
+- Perfect for responsive UI that adapts to different screen sizes
+
 ### Drawing Methods
 
 #### Shapes

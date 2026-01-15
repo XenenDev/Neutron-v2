@@ -1030,6 +1030,76 @@ public class MusicPlayer extends GameObject {
 
 ## UI and HUD
 
+### Screen Anchored HUD
+
+This example demonstrates how to use screen anchors to position UI elements in different corners of the screen, regardless of screen resolution.
+
+```java
+package game.ui;
+
+import com.neutron.engine.GameCore;
+import com.neutron.engine.Renderer;
+import com.neutron.engine.base.GameObject;
+import com.neutron.engine.base.interfaces.UIObjectRenderer;
+import com.neutron.engine.func.ScreenAnchor;
+import java.awt.Color;
+import java.awt.Font;
+
+public class AnchoredHUD extends GameObject implements UIObjectRenderer {
+    private int score = 0;
+    private int lives = 3;
+    private boolean isPaused = false;
+    private Font hudFont;
+    private Font pauseFont;
+
+    @Override
+    public void play(GameCore gameCore) {
+        hudFont = new Font("Arial", Font.BOLD, 24);
+        pauseFont = new Font("Arial", Font.BOLD, 48);
+    }
+
+    @Override
+    public void update(GameCore gameCore, float delta) {
+        // Update logic
+    }
+
+    @Override
+    public void renderUI(GameCore gameCore, Renderer r) {
+        r.setFont(hudFont);
+        
+        // Score in top-left corner
+        r.setScreenAnchor(ScreenAnchor.TOP_LEFT);
+        r.drawText("Score: " + score, 10, 30, Color.WHITE);
+        
+        // Lives in top-right corner (use negative X to move inward)
+        r.setScreenAnchor(ScreenAnchor.TOP_RIGHT);
+        r.drawText("Lives: " + lives, -120, 30, Color.WHITE);
+        
+        // FPS counter in bottom-left corner (use negative Y to move upward)
+        r.setScreenAnchor(ScreenAnchor.BOTTOM_LEFT);
+        r.drawText("FPS: " + (int) gameCore.getFPS(), 10, -10, Color.GRAY);
+        
+        // Version info in bottom-right corner
+        r.setScreenAnchor(ScreenAnchor.BOTTOM_RIGHT);
+        r.drawText("v1.0.0", -70, -10, Color.GRAY);
+        
+        // Pause message centered on screen
+        if (isPaused) {
+            r.setFont(pauseFont);
+            r.setScreenAnchor(ScreenAnchor.CENTER);
+            r.drawText("PAUSED", -80, 15, Color.WHITE);
+        }
+        
+        // Reset anchor to default for other UI elements
+        r.setScreenAnchor(ScreenAnchor.TOP_LEFT);
+    }
+
+    public void addScore(int points) { score += points; }
+    public void loseLife() { lives--; }
+    public void setPaused(boolean paused) { isPaused = paused; }
+}
+```
+
 ### Score Display
 
 ```java
