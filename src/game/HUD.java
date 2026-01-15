@@ -7,6 +7,7 @@ import com.neutron.engine.base.interfaces.ui.UIButton;
 import com.neutron.engine.base.interfaces.ui.UIGroup;
 import com.neutron.engine.base.interfaces.ui.UIObject;
 import com.neutron.engine.func.Resource;
+import game.shaders.GradientShader;
 
 import java.awt.*;
 
@@ -23,8 +24,13 @@ public class HUD extends GameObject implements UIGroup, ObjectRenderer {
     }
 
     public void render(GameCore gameCore, Renderer r) {
-        //r.drawImage((Image) bg.get(), 0, 0, r.WIDTH, r.HEIGHT);
-        r.fillRect(0, 0, r.WIDTH, r.HEIGHT, Color.BLUE);
+        // Gradient background from deep purple-blue to lighter blue
+        r.shade(0, 0, r.WIDTH, r.HEIGHT, 
+            new GradientShader(
+                new Color(25, 25, 60),    // Deep blue-purple at top
+                new Color(60, 100, 180)    // Lighter blue at bottom
+            )
+        );
     }
 
     public int getZDepth() {
@@ -36,8 +42,12 @@ public class HUD extends GameObject implements UIGroup, ObjectRenderer {
 
             @Override
             protected void renderSelf(GameCore gameCore, Renderer r) {
-                r.drawText("Score: " + ((Player) ObjectHandler.get(Player.class).getFirst()).getScore(), x, y + 20, r.color(0,0,0));
-                r.drawText("FPS: " + gameCore.getFPS(), x, y + 40, r.color(0,0,0));
+                // Draw text shadow
+                r.drawText("Score: " + ((Player) ObjectHandler.get(Player.class).getFirst()).getScore(), x + 2, y + 22, r.color(0,0,0,100));
+                r.drawText("FPS: " + gameCore.getFPS(), x + 2, y + 42, r.color(0,0,0,100));
+                // Draw text
+                r.drawText("Score: " + ((Player) ObjectHandler.get(Player.class).getFirst()).getScore(), x, y + 20, Color.WHITE);
+                r.drawText("FPS: " + gameCore.getFPS(), x, y + 40, Color.WHITE);
             }
 
             @Override

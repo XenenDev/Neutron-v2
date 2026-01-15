@@ -46,7 +46,12 @@ public class Spike extends GameObject implements Collidable, ObjectRenderer, Tra
                 0,
                 SIZE
         };
-        r.fillPolygon(xs, ys, 3, r.color(200, 20, 20));
+        // Outer dark red
+        r.fillPolygon(xs, ys, 3, new Color(180, 30, 30));
+        // Inner brighter red for depth
+        int[] xsInner = {5, SIZE / 2, SIZE - 5};
+        int[] ysInner = {SIZE, 5, SIZE};
+        r.fillPolygon(xsInner, ysInner, 3, new Color(220, 50, 50));
     }
 
     @Override

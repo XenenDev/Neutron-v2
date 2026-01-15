@@ -23,7 +23,10 @@ public class Ground extends GameObject implements Collidable, ObjectRenderer {
 
     @Override
     public void render(GameCore gameCore, Renderer r) {
-        r.fillRect(0, 0, 1000, 50, r.color(0, 0, 0));
+        // Dark earthy ground
+        r.fillRect(0, 0, 1000, 50, r.color(50, 50, 50));
+        // Top surface highlight
+        r.fillRect(0, 0, 1000, 10, r.color(80, 80, 80));
     }
 
 
@@ -48,7 +51,7 @@ public class Ground extends GameObject implements Collidable, ObjectRenderer {
 
     @Override
     public Integer getY() {
-        return 500;
+        return 550;
     }
 
     @Override

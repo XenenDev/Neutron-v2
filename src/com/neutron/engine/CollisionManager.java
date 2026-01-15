@@ -124,8 +124,8 @@ public class CollisionManager {
                     for (CollisionPair p : collidingPairs) {
                         curr.add(p);
                         if (!prev.contains(p)) {
-                            A.onEnter((GameObject)B, p.colliderIdB);
-                            B.onEnter((GameObject)A, p.colliderIdA);
+                            p.objA().onEnter((GameObject)p.objB(), p.colliderIdB);
+                            p.objB().onEnter((GameObject)p.objA(), p.colliderIdA);
                         }
                     }
                     A.duringCollision((GameObject)B, delta);
