@@ -1,6 +1,7 @@
 package com.neutron.engine;
 
 import com.neutron.engine.base.BaseGame;
+import com.neutron.engine.base.GameObject;
 import com.neutron.engine.func.GraphicsFidelity;
 import game.Game;
 
@@ -12,6 +13,8 @@ public class GameCore implements Runnable {
 
     private final BaseGame game;
     private final Renderer renderer;
+
+    private float timeScale = 1.0f;
 
 
     public GameCore(Game game, String title, int width, int height, String iconPath, GraphicsFidelity gq) {
@@ -50,17 +53,17 @@ public class GameCore implements Runnable {
             delta += (double)(now - last) / UPDATES_PER_SECOND;
             last = now;
 
-
             while (delta >= 1) {
-                game.update(this, renderer, (float) delta);
-                ObjectHandler.updateObjects(this, (float) delta);
-                CollisionManager.checkCollisions((float) delta);
+                float adjustedDelta = 1.0f * timeScale;
+                game.update(this, renderer, adjustedDelta);
+                ObjectHandler.updateObjects(this, adjustedDelta);
+                CollisionManager.checkCollisions(adjustedDelta);
                 delta--;
             }
 
             renderer.clear();
             ObjectHandler.renderObjects(this, renderer);
-            //CollisionManager.renderCollisionBoxes(renderer); //REMOVE ME
+            if (renderer.isRenderColliders()) CollisionManager.renderCollisionBoxes(renderer);
             ObjectHandler.renderUIObjects(this, renderer);
             renderer.show();
         }
@@ -78,4 +81,19 @@ public class GameCore implements Runnable {
         return 1000 / frameTimeMs;
     }
 
+    public void setTimeScale(float timeScale) {
+        this.timeScale = timeScale;
+    }
+
+    public float getTimeScale() {
+        return timeScale;
+    }
+
+    public GameObject getObjectById(long id) {
+        return ObjectHandler.getById(id);
+    }
+
+    public boolean objectExists(long id) {
+        return ObjectHandler.exists(id);
+    }
 }

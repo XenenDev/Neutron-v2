@@ -21,6 +21,7 @@ public class ObjectHandler {
     private static final ArrayList<GameObject> gameObjects = new ArrayList<>();
     private static final ArrayList<ObjectRenderer> toRenderList = new ArrayList<>();
     private static final ArrayList<UIGroup> uiObjects = new ArrayList<>();
+    private static UIObject focusedUIObject = null;
 
     private static final List<Runnable> postUpdateTasks = new ArrayList<>();
     private static final HashMap<Long, GameObject> gameObjectsById = new HashMap<>();
@@ -32,12 +33,17 @@ public class ObjectHandler {
         gameCore = core;
     }
 
+    public static UIObject getFocusedUIObject() {
+        return focusedUIObject;
+    }
+
     public static void updateObjects(GameCore gameCore, float delta) {
         ObjectHandler.gameCore = gameCore;
         // Run any deferred object additions/removals after interface calls
+        // Clear before running so tasks added during execution are preserved for next update
         List<Runnable> snapshot = new ArrayList<>(postUpdateTasks);
-        snapshot.forEach(Runnable::run); //FIXME: Can cause null pointer exception when a GameObj is deleted, and a later function tries to modify or reference the now non-existent game object
         postUpdateTasks.clear();
+        snapshot.forEach(Runnable::run);
 
         for (GameObject gameObject : gameObjects) {
             gameObject.update(gameCore, delta);
@@ -59,12 +65,18 @@ public class ObjectHandler {
 
             r.setAlpha(1f);
 
+            double px = renderObject.getPivotX();
+            double py = renderObject.getPivotY();
             r.graphics.translate(x, y);
-            r.graphics.scale(scale, scale);
+            r.graphics.translate(px, py);
             r.graphics.rotate(Math.toRadians(rotation));
+            r.graphics.translate(-px, -py);
+            r.graphics.scale(scale, scale);
             renderObject.render(gameCore, r);
-            r.graphics.rotate(-Math.toRadians(rotation));
             r.graphics.scale(1d/scale, 1d/scale);
+            r.graphics.translate(px, py);
+            r.graphics.rotate(-Math.toRadians(rotation));
+            r.graphics.translate(-px, -py);
             r.graphics.translate(-x, -y);
         }
 
@@ -88,7 +100,10 @@ public class ObjectHandler {
     public static void sendUIObjectUpdates(int mouseX, int mouseY) {
         for (UIGroup uiGroup : uiObjects) {
             for (UIObject uiObject : uiGroup.objects()) {
-                if (uiObject.isBeingPressed(mouseX, mouseY)) uiObject.onPress();
+                if (uiObject.isBeingPressed(mouseX, mouseY)) {
+                    uiObject.onPress();
+                    if (uiObject.canFocus()) focusedUIObject = uiObject;
+                }
             }
         }
     }
@@ -124,10 +139,10 @@ public class ObjectHandler {
 
     public static long add(GameObject gameObject) {
         long id = UniqueId.generateGameObjectId();
+        gameObject.setId(id); // Assign ID immediately
+        gameObjectsById.put(id, gameObject); // Add to lookup map immediately
         postUpdateTasks.add(() -> {
-            gameObject.setId(id); // Assign ID first
             gameObjects.add(gameObject);
-            gameObjectsById.put(id, gameObject); // Add to lookup map
 
             if (gameObject instanceof ObjectRenderer) toRenderList.add((ObjectRenderer) gameObject);
             if (gameObject instanceof UIGroup) uiObjects.add((UIGroup) gameObject);
@@ -151,6 +166,13 @@ public class ObjectHandler {
 
     public static GameObject getById(long id) {
         return gameObjectsById.get(id); // Returns null if not found
+    }
+
+    public static void removeObjectById(long id) {
+        GameObject obj = getById(id);
+        if (obj != null) {
+            remove(obj);
+        }
     }
 
     public static boolean exists(long id) {

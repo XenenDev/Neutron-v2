@@ -14,4 +14,12 @@ public interface Transform {
         return 0d;
     }
 
+    default Double getPivotX() {
+        return 0d;
+    }
+
+    default Double getPivotY() {
+        return 0d;
+    }
+
 }

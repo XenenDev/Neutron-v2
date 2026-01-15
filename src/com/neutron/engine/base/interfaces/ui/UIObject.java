@@ -44,6 +44,14 @@ public abstract class UIObject {
     }
 
     public void onPress() { }
+
+    public void onDrag(int mouseX, int mouseY) { }
+
+    public void onRelease() { }
+
+    public void onKeyTyped(char c) { }
+
+    public boolean canFocus() { return false; }
 }
 
 

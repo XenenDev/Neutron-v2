@@ -27,6 +27,11 @@ public class Renderer {
     public final int WIDTH, HEIGHT;
     public final int CENTER_X, CENTER_Y;
 
+    //For flyweight style color loading
+    private static final Map<Integer, Color> cache = new HashMap<>();
+
+    //For visualizing collision boxes
+    private boolean renderColliders;
 
     public Renderer(Window window, GraphicsFidelity gq) {
         Canvas canvas = window.getCanvas();
@@ -51,6 +56,16 @@ public class Renderer {
         Arrays.fill(pixels, 0xFF000000); // Fill with opaque black
 
         lightmap.setRGB(0, 0, WIDTH, HEIGHT, pixels, 0, WIDTH);
+
+        this.renderColliders = false;
+    }
+
+    public boolean isRenderColliders() {
+        return renderColliders;
+    }
+
+    public void setRenderColliders(boolean renderColliders) {
+        this.renderColliders = renderColliders;
     }
 
     public void setGraphicsFidelity(GraphicsFidelity gq) {
@@ -134,6 +149,28 @@ public class Renderer {
     public void drawCircle(int x, int y, int radius, Color color) {
         graphics.setColor(color);
         graphics.drawOval(anchoredX(x), anchoredY(y), radius, radius);
+    }
+
+    public void fillPolygon(int[] xPoints, int[] yPoints, int nPoints, Color color) {
+        graphics.setColor(color);
+        int[] anchoredXPoints = new int[nPoints];
+        int[] anchoredYPoints = new int[nPoints];
+        for (int i = 0; i < nPoints; i++) {
+            anchoredXPoints[i] = anchoredX(xPoints[i]);
+            anchoredYPoints[i] = anchoredY(yPoints[i]);
+        }
+        graphics.fillPolygon(anchoredXPoints, anchoredYPoints, nPoints);
+    }
+
+    public void drawPolygon(int[] xPoints, int[] yPoints, int nPoints, Color color) {
+        graphics.setColor(color);
+        int[] anchoredXPoints = new int[nPoints];
+        int[] anchoredYPoints = new int[nPoints];
+        for (int i = 0; i < nPoints; i++) {
+            anchoredXPoints[i] = anchoredX(xPoints[i]);
+            anchoredYPoints[i] = anchoredY(yPoints[i]);
+        }
+        graphics.drawPolygon(anchoredXPoints, anchoredYPoints, nPoints);
     }
 
     public void drawLine(int x1, int y1, int x2, int y2, Color color) {
@@ -311,6 +348,24 @@ public class Renderer {
         blendLightImage(image);
     }
 
+    public Color color(int r, int g, int b, int a) {
+        int key = ((a & 0xFF) << 24) |
+                ((r & 0xFF) << 16) |
+                ((g & 0xFF) << 8)  |
+                (b & 0xFF);
+
+        return cache.computeIfAbsent(key, _ -> new Color(r, g, b, a));
+    }
+
+    public Color color(int r, int g, int b) {
+        int a = 255;
+        int key = ((a & 0xFF) << 24) |
+                ((r & 0xFF) << 16) |
+                ((g & 0xFF) << 8)  |
+                (b & 0xFF);
+
+        return cache.computeIfAbsent(key, _ -> new Color(r, g, b, a));
+    }
 
     public void setFont(Font f) {
         graphics.setFont(f);
@@ -336,6 +391,14 @@ public class Renderer {
 
     public int getCameraY() {
         return cameraY;
+    }
+
+    public int getCenterX() {
+        return CENTER_X;
+    }
+
+    public int getCenterY() {
+        return CENTER_Y;
     }
 
     public void setCameraZoom(double scale) {
@@ -365,7 +428,6 @@ public class Renderer {
 
         graphics.translate(-this.CENTER_X, -this.CENTER_Y);
     }
-
 
     public boolean getUseScreenCoordinates() {
         return useScreenCoordinates;

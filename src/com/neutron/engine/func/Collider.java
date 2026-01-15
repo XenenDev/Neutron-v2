@@ -17,12 +17,15 @@ public abstract class Collider {
 
     public abstract boolean intersects(Collider other);
 
-    /** AABB vs. AABB test. */
+    /** Small tolerance for edge-case collisions */
+    private static final double EPSILON = 0.1;
+
+    /** AABB vs. AABB test with small tolerance for edge cases. */
     public static boolean checkRectangleIntersection(RectangleCollider r1, RectangleCollider r2) {
-        return r1.x < r2.x + r2.width &&
-                r1.x + r1.width > r2.x &&
-                r1.y < r2.y + r2.height &&
-                r1.y + r1.height > r2.y;
+        return r1.x < r2.x + r2.width + EPSILON &&
+                r1.x + r1.width + EPSILON > r2.x &&
+                r1.y < r2.y + r2.height + EPSILON &&
+                r1.y + r1.height + EPSILON > r2.y;
     }
 
     /**

@@ -7,10 +7,10 @@ import com.neutron.engine.base.interfaces.Collidable;
 import com.neutron.engine.base.interfaces.ObjectRenderer;
 import com.neutron.engine.func.Collider;
 
-import java.awt.*;
 import java.util.List;
 
 public class Ground extends GameObject implements Collidable, ObjectRenderer {
+
     @Override
     public void play(GameCore gameCore) {
 
@@ -23,12 +23,12 @@ public class Ground extends GameObject implements Collidable, ObjectRenderer {
 
     @Override
     public void render(GameCore gameCore, Renderer r) {
-        r.fillRect(0, 500, 1000, 50, Color.BLACK);
+        r.fillRect(0, 0, 1000, 50, r.color(0, 0, 0));
     }
 
 
     public java.util.List<Collider> getColliders() {
-        return List.of(new Collider.RectangleCollider(0, 0, 1000, 500, "ground"));
+        return List.of(new Collider.RectangleCollider(0, 0, 1000, 50, "ground"));
     }
 
     @Override
@@ -48,7 +48,7 @@ public class Ground extends GameObject implements Collidable, ObjectRenderer {
 
     @Override
     public Integer getY() {
-        return 0;
+        return 500;
     }
 
     @Override

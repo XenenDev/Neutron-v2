@@ -40,12 +40,12 @@ public class CollisionManager {
     public static void renderCollisionBoxes(Renderer r) {
         for (Collidable c : collidables) {
             Random rnd = new Random(c.hashCode());
-            Color col = new Color(rnd.nextInt(106) + 150,
-                    rnd.nextInt(106) + 150,
-                    rnd.nextInt(106) + 150,
-                    150);
-            for (Collider colr : c.getColliders()) {
-                Collider g = colr.globalize((Transform) c);
+            for (Collider collider : c.getColliders()) {
+                Color col = new Color(rnd.nextInt(106) + 150,
+                        rnd.nextInt(106) + 150,
+                        rnd.nextInt(106) + 150,
+                        180);
+                Collider g = collider.globalize(c);
                 if (g instanceof RectangleCollider R) {
                     r.fillRect((int)R.x, (int)R.y, (int)R.width, (int)R.height, col);
                 } else if (g instanceof CircleCollider C) {
@@ -66,15 +66,15 @@ public class CollisionManager {
                 CollisionPair key = new CollisionPair(A, B);
                 if (done.contains(key)) continue;
 
-                boolean hit = false;
-                String idA = null, idB = null;
+                Set<CollisionPair> collidingPairs = new HashSet<>();
 
-                outer:
                 for (Collider ca : A.getColliders()) {
                     for (Collider cb : B.getColliders()) {
                         if (ca == null || cb == null) continue;
-                        Collider gA = ca.globalize((Transform) A);
-                        Collider gB = cb.globalize((Transform) B);
+                        Collider gA = ca.globalize(A);
+                        Collider gB = cb.globalize(B);
+
+                        boolean intersects = false;
 
                         // Case 1: fast swept‐AABB for two rectangles on Movables
                         if (gA instanceof RectangleCollider ra &&
@@ -87,14 +87,11 @@ public class CollisionManager {
 
                             // 1. Discrete check
                             if (ra.intersects(rb)) {
-                                hit = true;
-                                idA  = ra.getId();
-                                idB  = rb.getId();
-                                break outer;
+                                intersects = true;
                             }
 
                             // 2. Swept‐AABB only if non‐trivial motion
-                            if (Math.abs(dx) > 1e-3f || Math.abs(dy) > 1e-3f) {
+                            if (!intersects && (Math.abs(dx) > 1e-3f || Math.abs(dy) > 1e-3f)) {
                                 float minX = (float) Math.min(ra.x, ra.x + dx);
                                 float minY = (float) Math.min(ra.y, ra.y + dy);
                                 float  w   = (float) (ra.width  + Math.abs(dx));
@@ -104,33 +101,32 @@ public class CollisionManager {
                                         new RectangleCollider(minX, minY, w, h, ra.getId());
 
                                 if (swept.intersects(rb) && sweptAABB(ra, dx, dy, rb)) {
-                                    hit = true;
-                                    idA  = ra.getId();
-                                    idB  = rb.getId();
-                                    break outer;
+                                    intersects = true;
                                 }
                             }
 
                         } else {
                             // Case 2: any other combination → discrete
                             if (gA.intersects(gB)) {
-                                hit = true;
-                                idA  = ca.getId();
-                                idB  = cb.getId();
-                                break outer;
+                                intersects = true;
                             }
+                        }
+
+                        if (intersects) {
+                            CollisionPair p = new CollisionPair(A, B, ca.getId(), cb.getId());
+                            collidingPairs.add(p);
                         }
                     }
                 }
 
-                if (hit) {
-                    CollisionPair p = new CollisionPair(A, B, idA, idB);
-                    curr.add(p);
-                    done.add(p);
-
-                    if (!prev.contains(p)) {
-                        A.onEnter((GameObject)B, idB);
-                        B.onEnter((GameObject)A, idA);
+                if (!collidingPairs.isEmpty()) {
+                    done.add(key);
+                    for (CollisionPair p : collidingPairs) {
+                        curr.add(p);
+                        if (!prev.contains(p)) {
+                            A.onEnter((GameObject)B, p.colliderIdB);
+                            B.onEnter((GameObject)A, p.colliderIdA);
+                        }
                     }
                     A.duringCollision((GameObject)B, delta);
                     B.duringCollision((GameObject)A, delta);
@@ -156,14 +152,30 @@ public class CollisionManager {
     ) {
         float xEntry, yEntry, xExit, yExit;
 
-        if (dx > 0) {
+        // Handle zero velocity cases to avoid division by zero
+        if (Math.abs(dx) < 1e-6f) {
+            // No X movement - check if already overlapping on X axis
+            if (m.x + m.width <= t.x || m.x >= t.x + t.width) {
+                return false; // No X overlap, can never collide
+            }
+            xEntry = Float.NEGATIVE_INFINITY;
+            xExit = Float.POSITIVE_INFINITY;
+        } else if (dx > 0) {
             xEntry = (float) ((t.x - (m.x + m.width)) / dx);
             xExit  = (float) (((t.x + t.width) - m.x) / dx);
         } else {
             xEntry = (float) (((t.x + t.width) - m.x) / dx);
             xExit  = (float) ((t.x - (m.x + m.width)) / dx);
         }
-        if (dy > 0) {
+
+        if (Math.abs(dy) < 1e-6f) {
+            // No Y movement - check if already overlapping on Y axis
+            if (m.y + m.height <= t.y || m.y >= t.y + t.height) {
+                return false; // No Y overlap, can never collide
+            }
+            yEntry = Float.NEGATIVE_INFINITY;
+            yExit = Float.POSITIVE_INFINITY;
+        } else if (dy > 0) {
             yEntry = (float) ((t.y - (m.y + m.height)) / dy);
             yExit  = (float) (((t.y + t.height) - m.y) / dy);
         } else {
