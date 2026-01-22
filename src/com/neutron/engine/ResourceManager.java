@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 
 public class ResourceManager {
+    // Thread-safety lock for synchronous multi-threaded access
+    private static final Object lock = new Object();
+
     // ID → handle (int)
     private static final Map<Long, Integer> idMap = new HashMap<>();
 
@@ -24,70 +27,78 @@ public class ResourceManager {
     private static int nextHandle = 1; // simple counter for unique handles
 
     public static ResourceType load(String path, long resourceId) {
-        File f = new File(path);
+        synchronized (lock) {
+            File f = new File(path);
 
-        if (!f.exists() || !f.isFile() || !f.canRead()) {
-            handleInvalidPath(path);
-            return null;
-        }
-
-        // Check if already loaded by path
-        Integer handle = pathMap.get(path);
-        Object resource;
-
-        if (handle != null) {
-            // Already loaded, reuse
-            resource = handleMap.get(handle);
-        } else {
-            // Load new resource
-            if (isImageFile(f)) {
-                resource = img(path);
-                if (resource == null) return null;
-            } else if (isSoundFile(f)) {
-                resource = sound(path);
-                if (resource == null) return null;
-            } else {
-                System.err.println("Unsupported file type: " + path);
+            if (!f.exists() || !f.isFile() || !f.canRead()) {
+                handleInvalidPath(path);
                 return null;
             }
 
-            // Assign new handle
-            handle = nextHandle++;
-            handleMap.put(handle, resource);
-            pathMap.put(path, handle);
+            // Check if already loaded by path
+            Integer handle = pathMap.get(path);
+            Object resource;
+
+            if (handle != null) {
+                // Already loaded, reuse
+                resource = handleMap.get(handle);
+            } else {
+                // Load new resource
+                if (isImageFile(f)) {
+                    resource = img(path);
+                    if (resource == null) return null;
+                } else if (isSoundFile(f)) {
+                    resource = sound(path);
+                    if (resource == null) return null;
+                } else {
+                    System.err.println("Unsupported file type: " + path);
+                    return null;
+                }
+
+                // Assign new handle
+                handle = nextHandle++;
+                handleMap.put(handle, resource);
+                pathMap.put(path, handle);
+            }
+
+            // Map ID → handle
+            idMap.put(resourceId, handle);
+
+            return (resource instanceof BufferedImage) ? ResourceType.IMAGE : ResourceType.SOUND;
         }
-
-        // Map ID → handle
-        idMap.put(resourceId, handle);
-
-        return (resource instanceof BufferedImage) ? ResourceType.IMAGE : ResourceType.SOUND;
     }
 
     public static Object fetch(long id) {
-        Integer handle = idMap.get(id);
-        return (handle != null) ? handleMap.get(handle) : null;
+        synchronized (lock) {
+            Integer handle = idMap.get(id);
+            return (handle != null) ? handleMap.get(handle) : null;
+        }
     }
 
     public static void unload(long id, boolean fullUnload) {
-        Integer handle = idMap.remove(id);
-        if (handle == null) return;
+        synchronized (lock) {
+            Integer handle = idMap.remove(id);
+            if (handle == null) return;
 
-        if (fullUnload) {
-            // Remove the object entirely
-            Object obj = handleMap.remove(handle);
+            if (fullUnload) {
+                // Remove the object entirely
+                Object obj = handleMap.remove(handle);
 
-            // Also remove from pathMap (reverse lookup)
-            pathMap.values().removeIf(h -> h.equals(handle));
+                // Also remove from pathMap (reverse lookup)
+                pathMap.values().removeIf(h -> h.equals(handle));
+            }
+            // If fullUnload == false, the object stays cached in handleMap/pathMap
+            // so other IDs or future loads can reuse it.
         }
-        // If fullUnload == false, the object stays cached in handleMap/pathMap
-        // so other IDs or future loads can reuse it.
     }
 
     public static void clear() {
-        idMap.clear();
-        handleMap.clear();
-        pathMap.clear();
-        nextHandle = 1;
+        synchronized (lock) {
+            idMap.clear();
+            handleMap.clear();
+            pathMap.clear();
+            nextHandle = 1;
+        }
     }
 
     // --- Loaders ---
@@ -125,15 +136,17 @@ public class ResourceManager {
     }
 
     private static void handleInvalidPath(String path) {
-        if (!invalidPaths.contains(path)) {
-            invalidPaths.add(path);
-            File f = new File(path);
-            if (!f.exists()) {
-                System.err.println("Path doesn't exist: '" + path + "'");
-            } else if (f.isDirectory()) {
-                System.err.println("Path is to a directory, not a file: '" + path + "'");
-            } else {
-                System.err.println("The path: '" + path + "' either doesn't exist, can't be read or is a directory.");
+        synchronized (invalidPaths) {
+            if (!invalidPaths.contains(path)) {
+                invalidPaths.add(path);
+                File f = new File(path);
+                if (!f.exists()) {
+                    System.err.println("Path doesn't exist: '" + path + "'");
+                } else if (f.isDirectory()) {
+                    System.err.println("Path is to a directory, not a file: '" + path + "'");
+                } else {
+                    System.err.println("The path: '" + path + "' either doesn't exist, can't be read or is a directory.");
+                }
             }
         }
     }

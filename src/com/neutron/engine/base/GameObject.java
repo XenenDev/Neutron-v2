@@ -2,6 +2,7 @@ package com.neutron.engine.base;
 
 import com.neutron.engine.GameCore;
 import com.neutron.engine.ObjectHandler;
+import com.neutron.engine.SoundHelper;
 import com.neutron.engine.func.UniqueId;
 
 public abstract class GameObject {
@@ -27,6 +28,7 @@ public abstract class GameObject {
     public abstract void update(GameCore gameCore, float delta);
 
     public void delete() {
+        SoundHelper.cleanup(this.id); // Cleanup sound rules
         ObjectHandler.remove(this);
     }
 }

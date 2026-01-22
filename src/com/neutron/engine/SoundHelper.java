@@ -1,34 +1,19 @@
-package com.neutron.engine.base.interfaces;
+package com.neutron.engine;
 
-import com.neutron.engine.SoundHelper;
+import com.neutron.engine.func.AudioEffect;
+import com.neutron.engine.func.Resource;
+
+import java.util.*;
+import java.util.function.Supplier;
 
 /**
- * Interface for GameObjects that emit sounds based on conditions.
- * Return an array of SoundRules from defineSounds().
- * The engine will automatically handle registration and playback.
+ * Internal helper class for managing sound rules.
+ * Users should not interact with this directly - use the SoundEmitter interface instead.
  */
-public interface SoundEmitter {
-    
-    /**
-     * Define sound rules for this GameObject.
-     * Return an array of SoundRules that define when sounds should play.
-     * 
-     * Example:
-     * <pre>
-     * public SoundRule[] defineSounds() {
-     *     return new SoundRule[] {
-     *         new SoundRule(ResourceManager.getSound("walk.wav"), () -> isWalking, 0.5f, "walk", false),
-     *         new SoundRule(ResourceManager.getSound("shoot.wav"), () -> isShooting, 1.0f, "shoot", true)
-     *     };
-     * }
-     * </pre>
-     */
-    SoundHelper.SoundRule[] defineSounds();
-}
+public class SoundHelper {
 
     private static final Map<Long, List<SoundRule>> objectRules = new HashMap<>();
     private static final Map<String, Boolean> ruleStates = new HashMap<>();
-    private static final ThreadLocal<Long> currentContext = new ThreadLocal<>();
 
     /**
      * Represents a sound rule with a condition and playback settings
@@ -49,6 +34,11 @@ public interface SoundEmitter {
             this.tag = tag;
             this.onlyOnChange = onlyOnChange;
             this.effect = effect;
+        }
+
+        public SoundRule(Resource sound, Supplier<Boolean> condition, float volume,
+                         String tag, boolean onlyOnChange) {
+            this(sound, condition, volume, tag, onlyOnChange, null);
         }
     }
 
@@ -78,54 +68,7 @@ public interface SoundEmitter {
     }
 
     /**
-     * Add a rule using the current context (must be inside a context() block)
-     */
-    public static void addRule(Resource sound, Supplier<Boolean> condition,
-                               float volume, String tag, boolean onlyOnChange, AudioEffect effect) {
-        Long objectId = currentContext.get();
-        if (objectId == null) {
-            throw new IllegalStateException("No context set. Use SoundEmitter.context() or pass objectId explicitly.");
-        }
-        addRule(objectId, sound, condition, volume, tag, onlyOnChange, effect);
-    }
-
-    /**
-     * Add a rule using the current context without audio effect
-     */
-    public static void addRule(Resource sound, Supplier<Boolean> condition,
-                               float volume, String tag, boolean onlyOnChange) {
-        addRule(sound, condition, volume, tag, onlyOnChange, null);
-    }
-
-    /**
-     * Context helper for AutoCloseable pattern. Use with try-with-resources:
-     * <pre>
-     * try (var ctx = SoundEmitter.context(this.getId())) {
-     *     SoundEmitter.addRule(...);
-     *     SoundEmitter.addRule(...);
-     * }
-     * </pre>
-     */
-    public static class SoundContext implements AutoCloseable {
-        SoundContext(long objectId) {
-            currentContext.set(objectId);
-        }
-
-        @Override
-        public void close() {
-            currentContext.remove();
-        }
-    }
-
-    /**
-     * Create a context for the given GameObject ID. Use with try-with-resources.
-     */
-    public static SoundContext context(long objectId) {
-        return new SoundContext(objectId);
-    }
-
-    /**
-     * Update all sound rules for a specific GameObject. Call this in the GameObject's update() method.
+     * Update all sound rules for a specific GameObject. Called by ObjectHandler during update cycle.
      *
      * @param objectId The GameObject's unique ID
      */
@@ -159,7 +102,7 @@ public interface SoundEmitter {
     }
 
     /**
-     * Remove all rules and state for a specific GameObject. Call this when the object is deleted.
+     * Remove all rules and state for a specific GameObject. Called when the object is deleted.
      *
      * @param objectId The GameObject's unique ID
      */
@@ -168,23 +111,27 @@ public interface SoundEmitter {
         if (rules != null) {
             // Stop all sounds associated with this object and clean up state
             for (SoundRule rule : rules) {
-                SoundManager.stopByTag(rule.tag);
+                String uniqueTag = objectId + ":" + rule.tag;
+                SoundManager.stopByTag(uniqueTag);
                 ruleStates.remove(objectId + ":" + rule.tag);
             }
         }
-    }
+    }// Use object-specific tag to avoid conflicts between different objects
+            String uniqueTag = objectId + ":" + rule.tag;
 
-    /**
-     * Remove all rules for all objects (useful for scene changes)
-     */
-    public static void clearAll() {
-        SoundManager.stopAll();
-        objectRules.clear();
-        ruleStates.clear();
-    }
-
-    /**
-     * Get the number of registered objects
+            if (rule.onlyOnChange) {
+                // Play only when condition transitions from false to true
+                if (currentState && (previousState == null || !previousState)) {
+                    SoundManager.play(rule.sound, rule.volume, rule.effect, uniqueTag);
+                }
+            } else {
+                // Continuous playback while condition is true
+                if (currentState && (previousState == null || !previousState)) {
+                    // Condition just became true - start playing
+                    SoundManager.play(rule.sound, rule.volume, rule.effect, uniqueTag);
+                } else if (!currentState && previousState != null && previousState) {
+                    // Condition just became false - stop playing
+                    SoundManager.stopByTag(uniqueT
      */
     public static int getRegisteredObjectCount() {
         return objectRules.size();

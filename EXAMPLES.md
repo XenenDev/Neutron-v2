@@ -1026,6 +1026,180 @@ public class MusicPlayer extends GameObject {
 }
 ```
 
+### SoundEmitter Interface Example
+
+The `SoundEmitter` interface provides declarative, condition-based sound playback for GameObjects.
+
+```java
+package game.objects;
+
+import com.neutron.engine.GameCore;
+import com.neutron.engine.ResourceManager;
+import com.neutron.engine.base.GameObject;
+import com.neutron.engine.base.interfaces.ObjectRenderer;
+import com.neutron.engine.base.interfaces.KeyboardInput;
+import com.neutron.engine.base.interfaces.SoundEmitter;
+import com.neutron.engine.Renderer;
+import com.neutron.engine.Input;
+import com.neutron.engine.SoundHelper.SoundRule;
+
+import java.awt.event.KeyEvent;
+
+public class Car extends GameObject implements ObjectRenderer, KeyboardInput, SoundEmitter {
+    private int x = 400, y = 300;
+    private float speed = 0;
+    private boolean isEngineRunning = false;
+    private boolean isAccelerating = false;
+    private boolean isBraking = false;
+    private boolean justHonked = false;
+    
+    @Override
+    public SoundRule[] defineSounds() {
+        return new SoundRule[] {
+            // Idle engine sound - plays while engine is running but not accelerating
+            new SoundRule(
+                ResourceManager.getSound("engine_idle.wav"),
+                () -> isEngineRunning && !isAccelerating && speed < 5f,
+                0.4f,
+                "engine-idle",
+                false  // Loop while condition is true
+            ),
+            
+            // Acceleration engine sound - plays while accelerating
+            new SoundRule(
+                ResourceManager.getSound("engine_rev.wav"),
+                () -> isEngineRunning && isAccelerating,
+                0.7f,
+                "engine-rev",
+                false
+            ),
+            
+            // Brake screech - plays once when braking at high speed
+            new SoundRule(
+                ResourceManager.getSound("brake.wav"),
+                () -> isBraking && speed > 30f,
+                0.8f,
+                "brake",
+                true  // Play once on condition change
+            ),
+            
+            // Horn - plays once when honked
+            new SoundRule(
+                ResourceManager.getSound("horn.wav"),
+                () -> justHonked,
+                1.0f,
+                "horn",
+                true
+            ),
+            
+            // Engine start - plays once when engine turns on
+            new SoundRule(
+                ResourceManager.getSound("engine_start.wav"),
+                () -> isEngineRunning,
+                0.9f,
+                "engine-start",
+                true
+            )
+        };
+    }
+    
+    @Override
+    public void play(GameCore gameCore) {
+        // Initialization
+    }
+    
+    @Override
+    public void update(GameCore gameCore, float delta) {
+        // Handle acceleration
+        if (isAccelerating && isEngineRunning) {
+            speed += 100f * delta;
+            if (speed > 100f) speed = 100f;
+        }
+        
+        // Handle braking
+        if (isBraking && speed > 0) {
+            speed -= 150f * delta;
+            if (speed < 0) speed = 0;
+        }
+        
+        // Natural deceleration
+        if (!isAccelerating && !isBraking && speed > 0) {
+            speed -= 30f * delta;
+            if (speed < 0) speed = 0;
+        }
+        
+        // Move car
+        x += (int)(speed * delta);
+        
+        // Reset one-frame flags
+        justHonked = false;
+        
+        // Engine automatically evaluates all sound rules every frame
+    }
+    
+    @Override
+    public void keyPressed(Input input, KeyEvent e, Integer keyCode) {
+        switch (keyCode) {
+            case KeyEvent.VK_SPACE:
+                isEngineRunning = !isEngineRunning;
+                if (!isEngineRunning) speed = 0;
+                break;
+            case KeyEvent.VK_UP:
+                isAccelerating = true;
+                break;
+            case KeyEvent.VK_DOWN:
+                isBraking = true;
+                break;
+            case KeyEvent.VK_H:
+                justHonked = true;
+                break;
+        }
+    }
+    
+    @Override
+    public void keyReleased(Input input, KeyEvent e, Integer keyCode) {
+        if (keyCode == KeyEvent.VK_UP) {
+            isAccelerating = false;
+        } else if (keyCode == KeyEvent.VK_DOWN) {
+            isBraking = false;
+        }
+    }
+    
+    @Override
+    public void render(GameCore gameCore, Renderer r) {
+        // Draw car representation
+        r.setColor(isEngineRunning ? 0xFF0000 : 0x888888);
+        r.fillRect(0, 0, 80, 40);
+        
+        // Draw speed indicator
+        r.setColor(0xFFFFFF);
+        r.drawString("Speed: " + (int)speed, 10, 15);
+    }
+    
+    @Override
+    public Integer getX() { return x; }
+    
+    @Override
+    public Integer getY() { return y; }
+    
+    @Override
+    public Double getScale() { return 1.0; }
+    
+    @Override
+    public Double getRotation() { return 0.0; }
+    
+    @Override
+    public int getZDepth() { return 0; }
+}
+```
+
+**Key Features Demonstrated:**
+- Multiple sound rules with different playback behaviors
+- One-shot sounds (`onlyOnChange=true`) for events like honking and braking
+- Continuous sounds (`onlyOnChange=false`) for engine states
+- Complex conditions combining multiple variables
+- Automatic state-based sound management without manual `SoundManager` calls
+
 ---
 
 ## UI and HUD

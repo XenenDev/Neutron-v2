@@ -723,6 +723,181 @@ AudioEffect reverb = (sound) -> {
 SoundManager.play(sound, 1.0f, reverb, "sfx");
 ```
 
+### SoundEmitter Interface
+
+The `SoundEmitter` interface provides a declarative way to define condition-based sound playback for GameObjects. Instead of manually calling `SoundManager.play()` in your update loop, you define rules that automatically trigger sounds when conditions are met.
+
+#### How It Works
+
+1. Implement the `SoundEmitter` interface in your GameObject
+2. Return an array of `SoundRule` objects from `defineSounds()`
+3. The engine automatically evaluates conditions each frame and plays/stops sounds accordingly
+4. Cleanup is automatic when the object is deleted
+
+#### Basic Usage
+
+```java
+public class Player extends GameObject implements ObjectRenderer, KeyboardInput, SoundEmitter {
+    private boolean isWalking = false;
+    private boolean isShooting = false;
+    
+    @Override
+    public SoundRule[] defineSounds() {
+        return new SoundRule[] {
+            // Walk sound - plays while walking
+            new SoundRule(
+                ResourceManager.getSound("walk.wav"),
+                () -> isWalking,          // Condition
+                0.5f,                     // Volume
+                "walk",                   // Tag (internal use)
+                false                     // Loop while condition is true
+            ),
+            
+            // Shoot sound - plays once when shooting starts
+            new SoundRule(
+                ResourceManager.getSound("bang.wav"),
+                () -> isShooting,
+                1.0f,
+                "shoot",
+                true                      // Play once on condition change
+            )
+        };
+    }
+    
+    @Override
+    public void update(GameCore gameCore, float delta) {
+        // Update your state variables
+        isWalking = /* your logic */;
+        isShooting = /* your logic */;
+        
+        // Engine automatically evaluates sound conditions
+    }
+}
+```
+
+#### SoundRule Parameters
+
+```java
+new SoundRule(Resource sound, Supplier<Boolean> condition, float volume, 
+              String tag, boolean onlyOnChange)
+```
+
+- **sound** - The sound resource to play
+- **condition** - Lambda/method reference that returns true when sound should play
+- **volume** - Volume level (0.0 to 1.0), multiplied by master volume
+- **tag** - Internal identifier (automatic per-object scoping prevents conflicts)
+- **onlyOnChange** - Playback behavior:
+  - `true` - Play once when condition transitions from false → true (good for one-shot sounds like gunshots, jumps)
+  - `false` - Play when condition becomes true, stop when it becomes false (good for continuous sounds like walking, engines)
+
+#### Advanced Example
+
+```java
+public class Enemy extends GameObject implements ObjectRenderer, SoundEmitter {
+    private boolean isChasing = false;
+    private boolean isAttacking = false;
+    private float health = 100f;
+    
+    @Override
+    public SoundRule[] defineSounds() {
+        return new SoundRule[] {
+            // Chase music when pursuing player
+            new SoundRule(
+                ResourceManager.getSound("chase.wav"),
+                () -> isChasing,
+                0.7f,
+                "chase-music",
+                false
+            ),
+            
+            // Attack sound
+            new SoundRule(
+                ResourceManager.getSound("attack.wav"),
+                () -> isAttacking,
+                0.8f,
+                "attack",
+                true
+            ),
+            
+            // Low health warning (complex condition)
+            new SoundRule(
+                ResourceManager.getSound("warning.wav"),
+                () -> health < 25f && health > 0f,
+                0.6f,
+                "low-health",
+                true
+            ),
+            
+            // Death sound
+            new SoundRule(
+                ResourceManager.getSound("death.wav"),
+                () -> health <= 0f,
+                1.0f,
+                "death",
+                true
+            )
+        };
+    }
+}
+```
+
+#### With Audio Effects
+
+```java
+@Override
+public SoundRule[] defineSounds() {
+    AudioEffect echo = (sound) -> {
+        // Your effect implementation
+    };
+    
+    return new SoundRule[] {
+        new SoundRule(
+            ResourceManager.getSound("echo.wav"),
+            () -> isInCave,
+            0.6f,
+            "ambient",
+            false,
+            echo  // Optional audio effect parameter
+        )
+    };
+}
+```
+
+#### Important Notes
+
+**Continuous Sounds:**
+- When `onlyOnChange=false`, the sound plays once when the condition becomes true
+- For actual looping audio, use looping sound files (the engine does not auto-restart finished sounds)
+- The sound stops when the condition becomes false
+
+**Condition Evaluation:**
+- Conditions are evaluated every frame during the update cycle
+- Keep conditions lightweight to avoid performance issues
+- Use instance variables that are updated in `update()` rather than expensive calculations
+
+**Tag Scoping:**
+- Tags are automatically scoped per-object to prevent conflicts
+- Multiple objects can use the same tag name without interfering with each other
+- Internally, tags are prefixed with the object's unique ID
+
+**Lifecycle:**
+- `defineSounds()` is called once when the object is added to the game
+- Sound rules are automatically cleaned up when `delete()` is called
+- All active sounds are stopped on cleanup
+
+#### When to Use SoundEmitter vs Manual SoundManager
+
+**Use SoundEmitter when:**
+- Sounds are triggered by state changes (walking, jumping, low health)
+- You want declarative, organized sound management
+- You have multiple condition-based sounds per object
+
+**Use SoundManager directly when:**
+- Playing one-off sounds (explosions, collisions)
+- Complex timing requirements
+- Dynamic sound selection based on runtime data
+- Playing sounds from non-GameObject contexts
+
 ---
 
 ## Resource Management

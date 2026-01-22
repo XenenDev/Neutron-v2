@@ -3,6 +3,7 @@ package com.neutron.engine;
 import com.neutron.engine.base.*;
 import com.neutron.engine.base.interfaces.Collidable;
 import com.neutron.engine.base.interfaces.ObjectRenderer;
+import com.neutron.engine.base.interfaces.SoundEmitter;
 import com.neutron.engine.base.interfaces.ui.UIGroup;
 import com.neutron.engine.base.interfaces.ui.UIObject;
 import com.neutron.engine.func.UniqueId;
@@ -21,6 +22,7 @@ public class ObjectHandler {
     private static final ArrayList<GameObject> gameObjects = new ArrayList<>();
     private static final ArrayList<ObjectRenderer> toRenderList = new ArrayList<>();
     private static final ArrayList<UIGroup> uiObjects = new ArrayList<>();
+    private static final ArrayList<SoundEmitter> soundEmitters = new ArrayList<>();
     private static UIObject focusedUIObject = null;
 
     private static final List<Runnable> postUpdateTasks = new ArrayList<>();
@@ -47,6 +49,13 @@ public class ObjectHandler {
 
         for (GameObject gameObject : gameObjects) {
             gameObject.update(gameCore, delta);
+        }
+
+        // Update sound emitters
+        for (SoundEmitter emitter : soundEmitters) {
+            if (emitter instanceof GameObject go) {
+                SoundHelper.update(go.getId());
+            }
         }
     }
 
@@ -147,6 +156,18 @@ public class ObjectHandler {
             if (gameObject instanceof ObjectRenderer) toRenderList.add((ObjectRenderer) gameObject);
             if (gameObject instanceof UIGroup) uiObjects.add((UIGroup) gameObject);
             if (gameObject instanceof Collidable) CollisionManager.register((Collidable) gameObject);
+            
+            // Register sound emitter and add all defined rules
+            if (gameObject instanceof SoundEmitter soundEmitter) {
+                soundEmitters.add(soundEmitter);
+                SoundHelper.SoundRule[] rules = soundEmitter.defineSounds();
+                if (rules != null) {
+                    for (SoundHelper.SoundRule rule : rules) {
+                        SoundHelper.addRule(id, rule.sound, rule.condition, rule.volume, 
+                                          rule.tag, rule.onlyOnChange, rule.effect);
+                    }
+                }
+            }
 
             gameObject.play(ObjectHandler.gameCore);
         });
@@ -161,6 +182,7 @@ public class ObjectHandler {
             if (gameObject instanceof ObjectRenderer) toRenderList.remove(gameObject);
             if (gameObject instanceof UIGroup) uiObjects.remove(gameObject);
             if (gameObject instanceof Collidable) CollisionManager.unregister((Collidable) gameObject);
+            if (gameObject instanceof SoundEmitter) soundEmitters.remove(gameObject);
         });
     }
 

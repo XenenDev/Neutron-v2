@@ -708,7 +708,69 @@ Called when window loses focus.
 
 ### SoundEmitter
 
-Interface for objects that emit sound (future use).
+Interface for declarative, condition-based sound playback in GameObjects.
+
+#### Methods
+
+**defineSounds()**
+```java
+SoundHelper.SoundRule[] defineSounds()
+```
+Returns an array of sound rules that define when sounds should play.
+
+Each rule is evaluated every frame, and sounds are automatically played/stopped based on conditions.
+
+- **Returns:** Array of `SoundRule` objects (can be empty or null)
+
+#### SoundRule Constructor
+
+```java
+public SoundRule(Resource sound, Supplier<Boolean> condition, 
+                 float volume, String tag, boolean onlyOnChange)
+
+public SoundRule(Resource sound, Supplier<Boolean> condition, 
+                 float volume, String tag, boolean onlyOnChange, 
+                 AudioEffect effect)
+```
+
+- **Parameters:**
+  - `sound` - The sound resource to play
+  - `condition` - Lambda/Supplier returning true when sound should play
+  - `volume` - Volume (0.0 to 1.0)
+  - `tag` - Internal tag for sound identification
+  - `onlyOnChange` - If true, play once on condition change; if false, play while condition is true
+  - `effect` - Optional audio effect (can be null)
+
+#### Example
+
+```java
+public class Player extends GameObject implements SoundEmitter {
+    private boolean isWalking;
+    private boolean jumped;
+    
+    @Override
+    public SoundRule[] defineSounds() {
+        return new SoundRule[] {
+            new SoundRule(
+                ResourceManager.getSound("walk.wav"),
+                () -> isWalking,
+                0.5f,
+                "walk",
+                false  // Loop while walking
+            ),
+            new SoundRule(
+                ResourceManager.getSound("jump.wav"),
+                () -> jumped,
+                1.0f,
+                "jump",
+                true  // Play once when jumping
+            )
+        };
+    }
+}
+```
+
+See [Audio System - SoundEmitter Interface](DOCUMENTATION.md#soundemitter-interface) for detailed usage guide.
 
 ---
 
